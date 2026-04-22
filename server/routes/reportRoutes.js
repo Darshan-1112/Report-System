@@ -3,19 +3,16 @@ const router = express.Router();
 const reportController = require('../controllers/reportController');
 const { verifyToken, authorize } = require('../middleware/authMiddleware');
 
-// Only 'employee' role can access this
-router.post('/submit', verifyToken, authorize(['employee']), reportController.createReport);
+// Static routes FIRST — must come before any /:id routes
+router.post('/submit',  verifyToken, authorize(['employee']), reportController.createReport);
+router.get('/pending',  verifyToken, authorize(['manager']),  reportController.getPendingReports);
+router.get('/my',       verifyToken, authorize(['employee']), reportController.getMyReports);
+router.get('/stats',    verifyToken,                          reportController.getDashboardStats);
+router.get('/chart',    verifyToken,                          reportController.getChartData);
 
-// Manager: Get team's pending reports
-router.get('/pending', verifyToken, authorize(['manager']), reportController.getPendingReports);
-
-// Manager: Review (Approve/Reject) a report
 router.put('/review/:id', verifyToken, authorize(['manager']), reportController.reviewReport);
 
-router.get('/my', verifyToken, authorize(['employee']), reportController.getMyReports);
-
-router.get('/stats', verifyToken, reportController.getDashboardStats);
-
-router.get('/chart', verifyToken, reportController.getChartData);
+// Dynamic /:id routes LAST — so they never shadow static paths above
+router.get('/:id/tasks', verifyToken, authorize(['manager']), reportController.getReportTasks);
 
 module.exports = router;

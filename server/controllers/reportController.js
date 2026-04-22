@@ -195,11 +195,23 @@ exports.getDashboardStats = async (req, res) => {
     }
 };
 
+exports.getReportTasks = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [tasks] = await db.execute(
+            'SELECT * FROM report_tasks WHERE report_id = ? ORDER BY id ASC',
+            [id]
+        );
+        res.status(200).json({ success: true, tasks });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 exports.getChartData = async (req, res) => {
     try {
         const userId = req.user.id;
         
-        // This query gets the tasks from the VERY LAST report submitted by the user
         const [rows] = await db.execute(`
             SELECT 
                 rt.task_name as name, 
